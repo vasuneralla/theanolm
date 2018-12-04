@@ -32,6 +32,7 @@ from theanolm.network.hsoftmaxlayer import HSoftmaxLayer
 from theanolm.network.dropoutlayer import DropoutLayer
 from theanolm.network.bidirectionallayer import BidirectionalLayer
 from theanolm.network.samplingoutputlayer import SamplingOutputLayer
+from theanolm.network.freezelayer import FreezeLayer
 
 def create_layer(layer_options, *args, **kwargs):
     """Constructs one of the Layer classes based on a layer definition.
@@ -63,6 +64,8 @@ def create_layer(layer_options, *args, **kwargs):
         return HSoftmaxLayer(layer_options, *args, **kwargs)
     elif layer_type == 'dropout':
         return DropoutLayer(layer_options, *args, **kwargs)
+    elif layer_type == 'freeze':
+        return FreezeLayer(layer_options, *args, **kwargs)
     else:
         raise ValueError("Invalid layer type requested: " + layer_type)
 
@@ -412,6 +415,9 @@ class Network(object):
         result = dict()
         for layer in self.layers.values():
             result.update(layer.get_variables())
+            if "freeze" in layer.name:
+                if layer._switch:
+                    result.clear()
         return result
 
     def add_recurrent_state(self, size):

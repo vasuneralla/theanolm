@@ -344,6 +344,9 @@ class Architecture(object):
                             .format(variable, value, h5_value))
             else:
                 h5_value = h5_group.attrs[variable]
+                if "freeze" in h5_group.attrs["name"]:
+                    if variable == "switch":
+                        continue
                 if values != h5_value:
                     raise IncompatibleStateError(
                         "Neural network state has {0}={2}, while this "

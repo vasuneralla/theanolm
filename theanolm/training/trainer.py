@@ -159,7 +159,7 @@ class Trainer(object):
 
         self._log_update_interval = log_interval
 
-    def initialize(self, network, state, optimizer):
+    def initialize(self, network, state, optimizer, load_and_train=False):
         """Sets the network and the HDF5 file that stores the network state,
         optimizer, and validation scorer and iterator.
 
@@ -182,7 +182,16 @@ class Trainer(object):
         self._optimizer = optimizer
 
         self._candidate_state = state
-        if 'trainer' in self._candidate_state:
+        if 'trainer' in self._candidate_state and load_and_train:
+            print("Restoring initial network state from {} partially.".format(
+                self._candidate_state.filename))
+            sys.stdout.flush()
+            self._reset_partial_state()
+            self._candidate_index = None
+            self.epoch_number = 1
+            self.update_number = 0
+            self._cost_history = numpy.asarray([], dtype=theano.config.floatX)
+        elif 'trainer' in self._candidate_state:
             print("Restoring initial network state from {}.".format(
                 self._candidate_state.filename))
             sys.stdout.flush()
@@ -192,7 +201,7 @@ class Trainer(object):
             self.epoch_number = 1
             self.update_number = 0
             self._cost_history = numpy.asarray([], dtype=theano.config.floatX)
-
+        
         self._total_updates = 0
 
     def train(self):
@@ -335,6 +344,27 @@ class Trainer(object):
 
         self._training_iter.set_state(self._candidate_state)
         self._optimizer.set_state(self._candidate_state)
+
+    def _reset_partial_state(self):
+        """Resets the values of some of the Theano shared variables to the current candidate
+         state.
+
+        Requires that if ``state`` is set, it contains values for these values the
+        training parameters.
+
+        :type state: h5py.File
+        :param state: if a HDF5 file is given, reads the the training parameters
+                      from this file, and assumes this is the state of minimum
+                      cost found so far
+        """
+
+        self._network.set_state(self._candidate_state)
+
+        if 'trainer' not in self._candidate_state:
+            raise IncompatibleStateError("Training state is missing.")
+        h5_trainer = self._candidate_state['trainer']
+
+        #self._optimizer.set_state(self._candidate_state)
 
     def num_validations(self):
         """Returns the number of validations performed.

@@ -220,6 +220,9 @@ def add_arguments(parser):
     argument_group.add_argument(
         '--profile', action="store_true",
         help='enable profiling Theano functions')
+    argument_group.add_argument(
+        '--load-and-train', action="store_true",
+        help='load the weight matrices from the MODEL and retrain')
 
 def _read_vocabulary(args, state):
     """If ``state`` contains data, reads the vocabulary from the HDF5 state.
@@ -446,8 +449,8 @@ def train(args):
         if args.print_graph:
             print("Cost function computation graph:")
             theano.printing.debugprint(optimizer.gradient_update_function)
-
-        trainer.initialize(network, state, optimizer)
+        
+        trainer.initialize(network, state, optimizer,args.load_and_train)
 
         if args.validation_file is not None:
             logging.info("Building text scorer for cross-validation.")
