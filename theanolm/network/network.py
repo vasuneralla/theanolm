@@ -414,10 +414,10 @@ class Network(object):
 
         result = dict()
         for layer in self.layers.values():
-            result.update(layer.get_variables())
             if "freeze" in layer.name:
                 if layer._switch:
-                    result.clear()
+                    continue
+            result.update(layer.get_variables())    
         return result
 
     def add_recurrent_state(self, size):
