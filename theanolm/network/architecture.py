@@ -141,6 +141,8 @@ class Architecture(object):
                         layer_description['inputs'].append(value)
                     elif variable == 'device':
                         layer_description['devices'].append(value)
+                    elif variable == 'freeze':
+                        layer_description['freeze'].append(value)
                     else:
                         layer_description[variable] = value
                 if 'type' not in layer_description:
@@ -150,6 +152,10 @@ class Architecture(object):
                 if 'name' not in layer_description:
                     raise InputError(
                         "'name' is not given in a layer description in '{}'."
+                        .format(description_file.name))
+                if 'freeze' not in layer_description:
+                    raise InputError(
+                        "'freeze' is not given in a layer description in '{}'."
                         .format(description_file.name))
                 if not layer_description['inputs']:
                     raise InputError(
